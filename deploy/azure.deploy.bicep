@@ -46,6 +46,4 @@ module main 'main.bicep' = {
 // Customize outputs as required from the main deployment module
 output resourceGroupId string = rg.id
 output resourceGroupName string = rg.name
-output appServiceName string = main.outputs.appServiceName
-output appServicePlanName string = main.outputs.appServicePlanName
 output storageAccountName string = main.outputs.storageAccountName

@@ -6,10 +6,17 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="ingestorFunctionApp" />
         <module name="processorFunctionApp" />
         <module name="notifierFunctionApp" />
+        <module name="activityGenerator" />
+        <module name="ingestorFunctionApp" />
+        <module name="activityAnalytics" />
       </profile>
     </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="activityAnalytics" options="" />
+    </option>
   </component>
 </project>

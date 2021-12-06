@@ -8,6 +8,8 @@
         <option value="$PROJECT_DIR$/ingestorFunctionApp/pom.xml" />
         <option value="$PROJECT_DIR$/notifierFunctionApp/pom.xml" />
         <option value="$PROJECT_DIR$/processorFunctionApp/pom.xml" />
+        <option value="$PROJECT_DIR$/activityGenerator/pom.xml" />
+        <option value="$PROJECT_DIR$/activityAnalytics/pom.xml" />
       </list>
     </option>
   </component>

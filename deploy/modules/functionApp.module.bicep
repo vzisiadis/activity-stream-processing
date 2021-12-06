@@ -1,10 +1,11 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
-param funcWorkerRuntime string = 'dotnet'
+param funcWorkerRuntime string = 'java'
 param funcExtensionVersion string = '~3'
 param funcAppSettings array = []
 param managedIdentity bool = false
+param linux bool = false
 
 @allowed([
   'Y1'
@@ -25,6 +26,10 @@ var funcStorageName = 's${replace(name, '-', '')}'
 var funcAppInsName = 'appins-${name}'
 var createSourceControl = !empty(funcDeployRepoUrl)
 var createNetworkConfig = !empty(subnetIdForIntegration)
+var siteConfigAddin = linux ? {
+  linuxFxVersion:  'Java|11'
+} : { }
+
 
 module funcStorage './storage.module.bicep' = {
   name: funcStorageName
@@ -53,18 +58,21 @@ resource funcAppServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
     name: skuName
     tier: skuTier
   }
+  properties: {
+    reserved: linux
+  }
 }
 
 resource funcApp 'Microsoft.Web/sites@2020-06-01' = {
   name: name
   location: location
-  kind: 'functionapp'
+  kind: linux ? 'functionapp,linux' : 'functionapp'
   identity: {
     type: managedIdentity ? 'SystemAssigned' : 'None'
   }
   properties: {
     serverFarmId: funcAppServicePlan.id
-    siteConfig: {
+    siteConfig: union({
       appSettings: concat([
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
@@ -103,9 +111,10 @@ resource funcApp 'Microsoft.Web/sites@2020-06-01' = {
           value: 'InstrumentationKey=${funcAppIns.outputs.instrumentationKey}'
         }
       ], funcAppSettings)
-    }
+    }, siteConfigAddin)
     httpsOnly: true
     clientAffinityEnabled: false
+    reserved: linux
   }
   tags: tags
 }

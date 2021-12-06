@@ -13,9 +13,12 @@ public class NofiticationDequeueFunction {
     @FunctionName("NofiticationDequeue")
     public void run(
             @ServiceBusQueueTrigger(name = "message", queueName = "%ServiceBueQueueName%", connection = "ServiceBusConnection") String message,
+            @SendGridOutput(apiKey = "SendGridApiKey", from = "%SendGridFromEmail", subject = "fasdfasdf")OutputBinding<String> notification,
             final ExecutionContext context
     ) {
+        
         context.getLogger().info("Java Service Bus Queue trigger function executed.");
         context.getLogger().info(message);
+        notification.setValue("");
     }
 }

@@ -14,15 +14,18 @@ public class ProcessorFunction {
      */
     @FunctionName("ProcessorFunction")
     public void run(
-        @EventHubTrigger(name = "messages", eventHubName = "%EventHubName%", connection = "EventHubConnection", consumerGroup = "%EventHubConsumerGroup%", cardinality = Cardinality.MANY) List<EventData> messages,
-        int partitionId,
-        Date enqueueTimeUtc,
+        @EventHubTrigger(name = "messages", eventHubName = "%EventHubName%", connection = "EventHubConnection", consumerGroup = "%EventHubConsumerGroup%", cardinality = Cardinality.ONE) String message,
+        String partitionKey,
+        Date enqueuedTimeUtc,
         long sequenceNumber,
-        String offset,
+        long offset,
         final ExecutionContext context
     ) {
+        
         context.getLogger().info("Java Event Hub trigger function executed.");
-        context.getLogger().info("Length:" + messages.size());
-        messages.forEach(message -> context.getLogger().info(message.getBodyAsString()));
+        context.getLogger().info(String.format("Enqueued: %s, message: %s", enqueuedTimeUtc.toString(), message));
+
+//        context.getLogger().info("Length:" + messages.size());
+//        messages.forEach(message -> context.getLogger().info(message.getPartitionKey()));
     }
 }

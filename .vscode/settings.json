@@ -1,0 +1,9 @@
+{
+  "azureFunctions.projectSubpath": "src\\java\\ingestorFunctionApp",
+  "azureFunctions.javaBuildTool": "maven",
+  "azureFunctions.deploySubpath": "src\\java\\ingestorFunctionApp/<function_build_path>",
+  "azureFunctions.projectLanguage": "Java",
+  "azureFunctions.projectRuntime": "~3",
+  "debug.internalConsoleOptions": "neverOpen",
+  "azureFunctions.preDeployTask": "package (functions)"
+}

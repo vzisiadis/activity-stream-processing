@@ -3,6 +3,11 @@ targetScope = 'subscription'
 param location string
 param applicationName string
 param environment string
+@allowed([
+  'prod'
+  'dev'
+])
+param environmentType string = 'dev'
 param tags object = {}
 
 var defaultTags = union({
@@ -38,6 +43,7 @@ module main 'main.bicep' = {
   name: 'MainDeployment'
   params: {
     location: location
+    environmentType: environmentType
     naming: naming.outputs.names
     tags: defaultTags
   }

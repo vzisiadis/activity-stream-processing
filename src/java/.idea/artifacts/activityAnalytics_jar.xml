@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="activityAnalytics:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/activityAnalytics_jar</output-path>
+    <root id="archive" name="activityAnalytics.jar">
+      <element id="module-output" name="activityAnalytics" />
+    </root>
+  </artifact>
+</component>

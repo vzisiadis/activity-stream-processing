@@ -18,12 +18,7 @@ function getEventPayload(eventType) {
     switch (eventType) {
         case 'WITHDRAWAL':
             return {
-                amount: 20
-            };
-
-        case 'PAGEVIEW':
-            return {
-                pageName: 'INDEX'
+                amount: getRandomInt(200)
             };
 
         case 'PAGEVIEW':
@@ -64,6 +59,7 @@ function createPayloadVars(context, events, done) {
     context.vars.event = eventTypes[idx];
     context.vars.timestamp = new Date().toISOString();
     context.vars.eventId = generateUUID();
+    context.vars.userId = "randomuser" + getRandomInt(10);
     context.vars.eventPayload = JSON.stringify(getEventPayload(eventTypes[idx]));
     return done();
 }

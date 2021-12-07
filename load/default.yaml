@@ -23,7 +23,7 @@ scenarios:
       - post:
           url: "/api/activities"
           json:
-            UserId: "randomusername"
+            UserId: "{{ userId }}"
             Timestamp: "{{ timestamp }}"
             SessionId: "{{ eventId }}"
             Event: "{{ event }}"

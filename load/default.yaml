@@ -1,0 +1,34 @@
+config:
+  target: https://[INGESTIONFUNC].azurewebsites.net
+  processor: "./funcs.js"
+  payload:
+    path: "data.csv"
+    fields:
+      - "city"
+      - "street"
+  phases:
+    - duration: 20
+      arrivalRate: 1
+      name: "Warm up application"
+    - duration: 180
+      arrivalRate: 3
+      name: "Stream user activities"
+  defaults:
+    headers:
+      x-functions-key: "oqJIz74tMmzxaVrgZzVZoLRJmnXsYsALOoCc7t73ET580YoUdBif8A=="
+scenarios:
+  - flow:
+      - log: "User Activity stream running"
+      - function: "createPayloadVars"
+      - post:
+          url: "/api/activities"
+          json:
+            userId: ""
+            timestamp: "{{ timestamp }}"
+            eventId: "{{ eventId }}"
+            event: "{{ event }}"
+            eventPayload: {{ eventPayload }}
+            source: "{{ source }}"
+          capture:
+            json: "$.eventId"
+            as: "eventId"

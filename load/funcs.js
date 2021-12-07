@@ -59,11 +59,11 @@ function generateUUID() { // Public Domain/MIT
 function createPayloadVars(context, events, done) {
     counter += 1;
     var idx = getRandomSourceEventIdx();
-    context.vars.address = context.vars.street + " " + getRandomInt(30) + ", " + context.vars.city;
+    // context.vars.address = context.vars.street + " " + getRandomInt(30) + ", " + context.vars.city;
     context.vars.source = sources[idx];
     context.vars.event = eventTypes[idx];
     context.vars.timestamp = new Date().toISOString();
     context.vars.eventId = generateUUID();
-    context.vars.eventPayload = getEventPayload(eventTypes[idx]);
+    context.vars.eventPayload = JSON.stringify(getEventPayload(eventTypes[idx]));
     return done();
 }

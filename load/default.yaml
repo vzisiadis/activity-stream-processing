@@ -1,5 +1,5 @@
 config:
-  target: https://[INGESTIONFUNC].azurewebsites.net
+  target: https://java-func-niantoni.azurewebsites.net
   processor: "./funcs.js"
   payload:
     path: "data.csv"
@@ -23,12 +23,13 @@ scenarios:
       - post:
           url: "/api/activities"
           json:
-            userId: ""
-            timestamp: "{{ timestamp }}"
-            eventId: "{{ eventId }}"
-            event: "{{ event }}"
-            eventPayload: {{ eventPayload }}
-            source: "{{ source }}"
+            UserId: "randomusername"
+            Timestamp: "{{ timestamp }}"
+            SessionId: "{{ eventId }}"
+            Event: "{{ event }}"
+            EventPayload: "{{ eventPayload }}"
+            Source: "{{ source }}"
+            Page: "RandomFrontendPage"
           capture:
             json: "$.eventId"
             as: "eventId"

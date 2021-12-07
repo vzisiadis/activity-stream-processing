@@ -19,6 +19,7 @@ var resourceNames = {
   serviceBusNamespace: naming.serviceBusNamespace.name
   dataStorageAccount: naming.storageAccount.nameUnique
   containerRegistry: naming.containerRegistry.name
+  streamAnalyticsJobName: naming.streamAnalyticsJob.name
 }
 
 var secretNames = {
@@ -188,6 +189,16 @@ module containerRegistry 'modules/containerRegistry.module.bicep' = {
     location: location
     name: resourceNames.containerRegistry
     tags: tags
+  }
+}
+
+module streamAnalyticsJob 'modules/streamAnalyticsJob.module.bicep' = {
+  name: 'streamAnalyticsJob'
+  params: {
+    location: location
+    name: resourceNames.streamAnalyticsJobName
+    tags: tags
+    numberOfStreamingUnits: 1
   }
 }
 

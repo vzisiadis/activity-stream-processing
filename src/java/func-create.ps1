@@ -1,3 +1,6 @@
+# Usage func-create.ps1 <FUNC_APP_NAME>
+# e.g. func-create.ps1 IngestorFunctionApp
+
 $groupId="com.contoso.functions"
 $javaVersion="11"
 $artifactId=$args[0]

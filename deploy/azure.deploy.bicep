@@ -8,6 +8,11 @@ param environment string
   'dev'
 ])
 param environmentType string = 'dev'
+
+@description('SendGrid API key for the notification emails')
+param sendGridApiKey string
+
+@description('Tags to be applied to the created resources')
 param tags object = {}
 
 var defaultTags = union({
@@ -45,6 +50,7 @@ module main 'main.bicep' = {
     location: location
     environmentType: environmentType
     naming: naming.outputs.names
+    sendGridApiKey: sendGridApiKey
     tags: defaultTags
   }
 }

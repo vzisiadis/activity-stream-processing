@@ -24,7 +24,7 @@ param name string
 @description('Number of Streaming Units')
 param numberOfStreamingUnits int
 
-resource streamAnalyticsJobName_resource 'Microsoft.StreamAnalytics/streamingjobs@2020-03-01' = {
+resource streamAnalyticsJob 'Microsoft.StreamAnalytics/streamingjobs@2020-03-01' = {
   name: name
   location: location
   tags: union(tags, {
@@ -43,8 +43,22 @@ resource streamAnalyticsJobName_resource 'Microsoft.StreamAnalytics/streamingjob
       name: 'Transformation'
       properties: {
         streamingUnits: numberOfStreamingUnits
-        query: 'SELECT\r\n    *\r\nINTO\r\n    [YourOutputAlias]\r\nFROM\r\n    [YourInputAlias]'
+        query: 'SELECT\n    System.TimeStamp() as AggregationTime,\n    UserId,\n    COUNT(*) AS eventCount,\n    SUM(CAST(udf.parseJson(backendEventHub.EventPayload).amount as bigint)) as totalAmount\nINTO\n    evtHubSink\nFROM\n    backendEventHub TIMESTAMP BY [Timestamp]\nWHERE Event=\'WITHDRAWAL\'\nGROUP BY UserId, TumblingWindow(second, 60)'
       }
     }
   }
 }
+/* Sample query aggregating the amount
+
+SELECT
+    System.TimeStamp() as AggregationTime,
+    UserId,
+    COUNT(*) AS eventCount,
+    SUM(CAST(udf.parseJson(backendEventHub.EventPayload).amount as bigint)) as totalAmount
+INTO
+    evtHubSink
+FROM
+    backendEventHub TIMESTAMP BY [Timestamp]
+WHERE Event='WITHDRAWAL'
+GROUP BY UserId, TumblingWindow(second, 60)
+*/

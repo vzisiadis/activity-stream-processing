@@ -21,8 +21,7 @@ public class ProcessorFunction {
         long offset,
         final ExecutionContext context
     ) {
-        
-        context.getLogger().info("Java Event Hub trigger function executed.");
+        context.getLogger().info("ProcessorFunctionApp:ProcessorFunction - Java Event Hub trigger function executed.");
         context.getLogger().info(String.format("Enqueued: %s, message: %s", enqueuedTimeUtc.toString(), message));
 
 //        context.getLogger().info("Length:" + messages.size());

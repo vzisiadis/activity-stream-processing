@@ -1,6 +1,7 @@
 param naming object
 param location string = resourceGroup().location
 param tags object
+param sendGridApiKey string
 
 @allowed([
   'prod'
@@ -26,6 +27,7 @@ var secretNames = {
   dataStorageConnectionString: 'dataStorageConnectionString'
   serviceBusConnectionString: 'serviceBusConnectionString'
   eventHubsNamespaceConnectionString: 'eventHubsNamespaceConnectionString'
+  sendGridApiKey: 'sendGridApiKey'
 }
 
 var functionSkuName = environmentType == 'dev' ? 'Y1' : 'EP1'
@@ -56,12 +58,8 @@ module ingestFuncApp './modules/functionApp.module.bicep' = {
         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.dataStorageConnectionString})'
       }
       {
-        name: 'ServiceBusConnection'
-        value: serviceBus.outputs.connectionString
-      }
-      {
         name: 'EventHubsConnection'
-        value: eventHub.outputs.namespaceConnectionString
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.eventHubsNamespaceConnectionString})'
       }
     ]
   }
@@ -82,11 +80,11 @@ module processorFuncApp './modules/functionApp.module.bicep' = {
       }
       {
         name: 'ServiceBusConnection'
-        value: serviceBus.outputs.connectionString
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.serviceBusConnectionString})'
       }
       {
         name: 'EventHubsConnection'
-        value: eventHub.outputs.namespaceConnectionString
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.eventHubsNamespaceConnectionString})'
       }
     ]
   }
@@ -107,11 +105,15 @@ module notifierFuncApp './modules/functionApp.module.bicep' = {
       }
       {
         name: 'ServiceBusConnection'
-        value: serviceBus.outputs.connectionString
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.serviceBusConnectionString})'
       }
       {
         name: 'EventHubsConnection'
-        value: eventHub.outputs.namespaceConnectionString
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.eventHubsNamespaceConnectionString})'
+      }
+      {
+        name: 'SendGridApiKey'
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.sendGridApiKey})'
       }
     ]
   }
@@ -156,6 +158,10 @@ module keyVault 'modules/keyvault.module.bicep' = {
       {
         name: secretNames.eventHubsNamespaceConnectionString
         value: eventHub.outputs.namespaceConnectionString
+      }
+      {
+        name: secretNames.sendGridApiKey
+        value: sendGridApiKey
       }
     ]
   }

@@ -1,5 +1,5 @@
 config:
-  target: https://java-func-niantoni.azurewebsites.net
+  target: https://[REPLACE:FUNCTION-APP].azurewebsites.net
   processor: "./funcs.js"
   payload:
     path: "data.csv"
@@ -15,7 +15,7 @@ config:
       name: "Stream user activities"
   defaults:
     headers:
-      x-functions-key: "oqJIz74tMmzxaVrgZzVZoLRJmnXsYsALOoCc7t73ET580YoUdBif8A=="
+      x-functions-key: "[REPLACE:FUNCTION_KEY]"
 scenarios:
   - flow:
       - log: "User Activity stream running"

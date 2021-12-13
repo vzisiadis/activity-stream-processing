@@ -11,6 +11,9 @@
     "location": {
       "value": "westeurope"
     },
+    "sendGridApiKey":{
+      "value": "[REPLACE_SENDGRID_APIKEY]"
+    },
     "tags": {
       "value": {
         "owner": "myself",

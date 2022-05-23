@@ -16,8 +16,9 @@
     },
     "tags": {
       "value": {
-        "owner": "myself",
-        "costCenter": "personal wallet"
+        "owner": "owner@organization.org",
+        "businessUnit": "Sample BU",
+        "costCenter": "RnD budget"
       }
     }
   }

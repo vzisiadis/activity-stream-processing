@@ -10,9 +10,9 @@ param sendGridApiKey string
 param environmentType string = 'dev'
 
 var resourceNames = {
-  ingestFuncApp: replace(naming.functionApp.name, 'func-', 'func-ingestor-')
-  processorFuncApp: replace(naming.functionApp.name, 'func-', 'func-processor-')
-  notifierFuncApp: replace(naming.functionApp.name, 'func-', 'func-notifier-')
+  ingestFuncApp: replace(naming.functionApp.name, '${naming.functionApp.slug}-', '${naming.functionApp.slug}-ingestor-')
+  processorFuncApp: replace(naming.functionApp.name, '${naming.functionApp.slug}-', '${naming.functionApp.slug}-processor-')
+  notifierFuncApp: replace(naming.functionApp.name, '${naming.functionApp.slug}-', '${naming.functionApp.slug}-notifier-')
   keyVault: naming.keyVault.nameUnique
   eventHubsNamespace: naming.eventHubNamespace.name
   eventHub: naming.eventHub.name

@@ -7,15 +7,38 @@ OUTPUTS=$(az deployment sub create \
   --parameters ./azure.deploy.parameters.json \
   --query properties.outputs)
 
-echo 'Convert deployment outputs to local variables'
+echo 'Deployment outputs'
 echo $OUTPUTS | jq
 
-RESOURCE_GROUP=$(echo $OUTPUTS | jq '.resourceGroupName.value')
-INGESTOR_FUNC_APP=$(echo $OUTPUTS | jq '.ingestorFunctionAppName.value')
-PROCESSOR_FUNC_APP=$(echo $OUTPUTS | jq '.processorFunctionAppName.value')
-NOTIFIER_FUNC_APP=$(echo $OUTPUTS | jq '.notifierFunctionAppName.value')
+echo 'Populate local variables from deployment outputs'
+RESOURCE_GROUP=$(echo $OUTPUTS | jq -r '.resourceGroupName.value')
+INGESTOR_FUNC_APP=$(echo $OUTPUTS | jq -r '.ingestorFunctionAppName.value')
+PROCESSOR_FUNC_APP=$(echo $OUTPUTS | jq -r '.processorFunctionAppName.value')
+NOTIFIER_FUNC_APP=$(echo $OUTPUTS | jq -r '.notifierFunctionAppName.value')
 
 echo $RESOURCE_GROUP
 echo $INGESTOR_FUNC_APP
 echo $PROCESSOR_FUNC_APP
 echo $NOTIFIER_FUNC_APP
+
+cd ..
+cd src/java
+mvn clean package
+
+# Deploy injestor function app
+cd ingestorFunctionApp/target/azure-functions/func-app-name/
+zip -r ../../../deploy.zip *
+cd ../../../..
+az functionapp deployment source config-zip -g $RESOURCE_GROUP -n $INGESTOR_FUNC_APP --src ./ingestorFunctionApp/deploy.zip
+
+# Deploy processor function app
+cd processorFunctionApp/target/azure-functions/func-app-name/
+zip -r ../../../deploy.zip *
+cd ../../../..
+az functionapp deployment source config-zip -g $RESOURCE_GROUP -n $PROCESSOR_FUNC_APP --src ./processorFunctionApp/deploy.zip
+
+# Deploy notifier function app
+cd notifierFunctionApp/target/azure-functions/func-app-name/
+zip -r ../../../deploy.zip *
+cd ../../../..
+az functionapp deployment source config-zip -g $RESOURCE_GROUP -n $NOTIFIER_FUNC_APP --src ./notifierFunctionApp/deploy.zip

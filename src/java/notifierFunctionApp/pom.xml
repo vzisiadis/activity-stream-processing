@@ -12,8 +12,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
-        <azure.functions.maven.plugin.version>1.14.1</azure.functions.maven.plugin.version>
-        <azure.functions.java.library.version>1.4.2</azure.functions.java.library.version>
+        <azure.functions.maven.plugin.version>1.21.0</azure.functions.maven.plugin.version>
+        <azure.functions.java.library.version>2.1.0</azure.functions.java.library.version>
         <functionAppName>func-app-name</functionAppName>
     </properties>
 
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.4.2</version>
+            <version>5.9.1</version>
             <scope>test</scope>
         </dependency>
 

@@ -1,6 +1,7 @@
 param keyVaultName string
 
 @description('Array of name/value pairs')
+#disable-next-line secure-secrets-in-params // Secret decoration cannot be applied to an array
 param secrets array
 
 resource keyVaultSecrets 'Microsoft.KeyVault/vaults/secrets@2018-02-14' = [for secret in secrets: {

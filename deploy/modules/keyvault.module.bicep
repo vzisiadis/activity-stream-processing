@@ -12,6 +12,7 @@ param skuName string = 'standard'
 param accessPolicies array = []
 
 @description('Secrets array with name/value pairs')
+#disable-next-line secure-secrets-in-params // Secret decoration cannot be applied to an array
 param secrets array = []
 
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {

@@ -1,5 +1,5 @@
 param name string
-param location string = resourceGroup().id
+param location string
 param tags object = {}
 
 @allowed([

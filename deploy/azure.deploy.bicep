@@ -32,6 +32,7 @@ module naming 'modules/naming.module.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'NamingDeployment'  
   params: {
+    location: rg.location
     suffix: [
       applicationName
       environment
@@ -59,3 +60,6 @@ module main 'main.bicep' = {
 output resourceGroupId string = rg.id
 output resourceGroupName string = rg.name
 output storageAccountName string = main.outputs.storageAccountName
+output ingestorFunctionAppName string = main.outputs.ingestorFunctionAppName
+output processorFunctionAppName string = main.outputs.processorFunctionAppName
+output notifierFunctionAppName string = main.outputs.notifierFunctionAppName

@@ -2,7 +2,7 @@ param name string
 param location string = resourceGroup().location
 param tags object = {}
 param funcWorkerRuntime string = 'java'
-param funcExtensionVersion string = '~3'
+param funcExtensionVersion string = '~4'
 param funcAppSettings array = []
 param managedIdentity bool = false
 param linux bool = false
@@ -19,6 +19,7 @@ param funcDeployRepoUrl string = ''
 param funcDeployBranch string = ''
 param subnetIdForIntegration string = ''
 param includeSampleFunction bool = false
+param appInsInstrumentationKey string = ''
 
 var skuTier = skuName == 'Y1' ? 'Dynamic' : 'Elastic'
 var funcAppServicePlanName = 'plan-${name}'
@@ -26,10 +27,13 @@ var funcStorageName = 's${replace(name, '-', '')}'
 var funcAppInsName = 'appins-${name}'
 var createSourceControl = !empty(funcDeployRepoUrl)
 var createNetworkConfig = !empty(subnetIdForIntegration)
+var createAppInsights = empty(appInsInstrumentationKey)
 var siteConfigAddin = linux ? {
   linuxFxVersion:  'Java|11'
-} : { }
-
+  javaVersion: '11'
+} : { 
+  javaVersion: '11'
+}
 
 module funcStorage './storage.module.bicep' = {
   name: funcStorageName
@@ -40,7 +44,7 @@ module funcStorage './storage.module.bicep' = {
   }
 }
 
-module funcAppIns './appInsights.module.bicep' = {
+module funcAppIns './appInsights.module.bicep' = if (createAppInsights) {
   name: funcAppInsName
   params: {
     name: funcAppInsName
@@ -79,10 +83,6 @@ resource funcApp 'Microsoft.Web/sites@2020-06-01' = {
           value: funcExtensionVersion
         }
         {
-          name: 'WEBSITE_NODE_DEFAULT_VERSION'
-          value: '10.14.1'
-        }
-        {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: funcWorkerRuntime
         }
@@ -104,11 +104,11 @@ resource funcApp 'Microsoft.Web/sites@2020-06-01' = {
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: funcAppIns.outputs.instrumentationKey
+          value: createAppInsights ? funcAppIns.outputs.instrumentationKey : appInsInstrumentationKey
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: 'InstrumentationKey=${funcAppIns.outputs.instrumentationKey}'
+          value: 'InstrumentationKey=${createAppInsights ? funcAppIns.outputs.instrumentationKey : appInsInstrumentationKey}'
         }
       ], funcAppSettings)
     }, siteConfigAddin)

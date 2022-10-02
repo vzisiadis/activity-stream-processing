@@ -24,7 +24,7 @@ param kind string = 'StorageV2'
 param skuName string = 'Standard_LRS'
 
 resource storage 'Microsoft.Storage/storageAccounts@2019-06-01' = {
-  name: toLower(replace(name, '-', ''))
+  name: toLower(take(replace(name, '-', ''), 24))
   location: location
   kind: kind
   sku: {

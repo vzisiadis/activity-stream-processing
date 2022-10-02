@@ -14,7 +14,7 @@ public class NofiticationDequeueFunction {
     @FunctionName("NofiticationDequeue")
     public void run(
             @ServiceBusQueueTrigger(name = "message", queueName = "%ServiceBueQueueName%", connection = "ServiceBusConnection") String message,
-            @SendGridOutput(apiKey = "SendGridApiKey", from = "%SendGridFromEmail", subject = "fasdfasdf", text = "", to = "", name = "")OutputBinding<String> notification,
+            @SendGridOutput(apiKey = "SendGridApiKey", from = "%SendGridFromEmail", subject = "Sample Email", text = "", to = "", name = "")OutputBinding<String> notification,
             final ExecutionContext context
     ) {
         context.getLogger().info("NofiticationDequeue: Java Service Bus Queue trigger function executed.");
@@ -30,8 +30,6 @@ public class NofiticationDequeueFunction {
      * Sendgrid documentation: https://docs.sendgrid.com/api-reference/mail-send/mail-send
      */
     private JsonObject buildSendGridPayload(String subject) {
-
-        
         JsonObject request = new JsonObject();
         JsonArray personalizations = new JsonArray();
 

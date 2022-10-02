@@ -14,7 +14,8 @@
         <java.version>11</java.version>
         <azure.functions.maven.plugin.version>1.21.0</azure.functions.maven.plugin.version>
         <azure.functions.java.library.version>2.1.0</azure.functions.java.library.version>
-        <azureFunctionAppName>java-func-niantoni</azureFunctionAppName>
+        <functionAppName>func-app-name</functionAppName>
+        <azureFunctionAppName>func-app-name</azureFunctionAppName>
         <azureAppServicePlanName>ASP-rgactsdev-bc0b</azureAppServicePlanName>
         <azureResourceGroup>rg-acts-dev</azureResourceGroup>
         <azureRegion>westeurope</azureRegion>

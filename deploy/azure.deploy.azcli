@@ -1,4 +1,21 @@
 SUBSCRIPTION_ID=xxx
 LOCATION=westeurope
 
-az deployment sub create --location $LOCATION --template-file ./azure.deploy.bicep --parameters ./azure.deploy.parameters.json
+OUTPUTS=$(az deployment sub create \
+  --location $LOCATION \
+  --template-file ./azure.deploy.bicep \
+  --parameters ./azure.deploy.parameters.json \
+  --query properties.outputs)
+
+echo 'Convert deployment outputs to local variables'
+echo $OUTPUTS | jq
+
+RESOURCE_GROUP=$(echo $OUTPUTS | jq '.resourceGroupName.value')
+INGESTOR_FUNC_APP=$(echo $OUTPUTS | jq '.ingestorFunctionAppName.value')
+PROCESSOR_FUNC_APP=$(echo $OUTPUTS | jq '.processorFunctionAppName.value')
+NOTIFIER_FUNC_APP=$(echo $OUTPUTS | jq '.notifierFunctionAppName.value')
+
+echo $RESOURCE_GROUP
+echo $INGESTOR_FUNC_APP
+echo $PROCESSOR_FUNC_APP
+echo $NOTIFIER_FUNC_APP

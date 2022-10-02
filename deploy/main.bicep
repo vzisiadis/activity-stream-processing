@@ -13,6 +13,7 @@ var resourceNames = {
   ingestFuncApp: replace(naming.functionApp.name, '${naming.functionApp.slug}-', '${naming.functionApp.slug}-ingestor-')
   processorFuncApp: replace(naming.functionApp.name, '${naming.functionApp.slug}-', '${naming.functionApp.slug}-processor-')
   notifierFuncApp: replace(naming.functionApp.name, '${naming.functionApp.slug}-', '${naming.functionApp.slug}-notifier-')
+  applicationInsights: naming.applicationInsights.name
   keyVault: naming.keyVault.nameUnique
   eventHubsNamespace: naming.eventHubNamespace.name
   eventHub: naming.eventHub.name
@@ -44,6 +45,15 @@ module dataStorageAccount 'modules/storage.module.bicep' = {
   }
 }
 
+module applicationInsights 'modules/appInsights.module.bicep' = {
+  name: 'applicationInsights'
+  params:{
+    name: resourceNames.applicationInsights
+    location: location
+    project: naming.applicationInsights.name
+  }
+}
+
 module ingestFuncApp './modules/functionApp.module.bicep' = {
   name: 'ingestFuncApp'
   params: {
@@ -52,6 +62,7 @@ module ingestFuncApp './modules/functionApp.module.bicep' = {
     managedIdentity: true
     tags: tags
     skuName: functionSkuName
+    appInsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     funcAppSettings: [
       {
         name: 'DataStorageConnection'
@@ -73,6 +84,7 @@ module processorFuncApp './modules/functionApp.module.bicep' = {
     managedIdentity: true
     tags: tags
     skuName: functionSkuName
+    appInsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     funcAppSettings: [
       {
         name: 'DataStorageConnection'
@@ -98,6 +110,7 @@ module notifierFuncApp './modules/functionApp.module.bicep' = {
     managedIdentity: true
     tags: tags
     skuName: functionSkuName
+    appInsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     funcAppSettings: [
       {
         name: 'DataStorageConnection'
@@ -139,6 +152,15 @@ module keyVault 'modules/keyvault.module.bicep' = {
       {
         tenantId: processorFuncApp.outputs.identity.tenantId
         objectId: processorFuncApp.outputs.identity.principalId
+        permissions: {
+          secrets: [
+            'get'
+          ]
+        }
+      }
+      {
+        tenantId: notifierFuncApp.outputs.identity.tenantId
+        objectId: notifierFuncApp.outputs.identity.principalId
         permissions: {
           secrets: [
             'get'
@@ -209,3 +231,6 @@ module streamAnalyticsJob 'modules/streamAnalyticsJob.module.bicep' = {
 }
 
 output storageAccountName string = dataStorageAccount.outputs.name
+output ingestorFunctionAppName string = ingestFuncApp.outputs.name
+output processorFunctionAppName string = processorFuncApp.outputs.name
+output notifierFunctionAppName string = notifierFuncApp.outputs.name

@@ -72,6 +72,10 @@ module ingestFuncApp './modules/functionApp.module.bicep' = {
         name: 'EventHubsConnection'
         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.eventHubsNamespaceConnectionString})'
       }
+      {
+        name: 'EventHubName'
+        value: resourceNames.eventHub
+      }
     ]
   }
 }
@@ -97,6 +101,14 @@ module processorFuncApp './modules/functionApp.module.bicep' = {
       {
         name: 'EventHubsConnection'
         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.eventHubsNamespaceConnectionString})'
+      }
+      {
+        name: 'EventHubName'
+        value: resourceNames.eventHub
+      }
+      {
+        name: 'EventHubConsumerGroup'
+        value: resourceNames.eventHubConsumerGroup
       }
     ]
   }

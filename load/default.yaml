@@ -23,13 +23,13 @@ scenarios:
       - post:
           url: "/api/activities"
           json:
-            UserId: "{{ userId }}"
-            Timestamp: "{{ timestamp }}"
-            SessionId: "{{ eventId }}"
-            Event: "{{ event }}"
-            EventPayload: "{{ eventPayload }}"
-            Source: "{{ source }}"
-            Page: "RandomFrontendPage"
+            userId: "{{ userId }}"
+            timestamp: "{{ timestamp }}"
+            sessionId: "{{ eventId }}"
+            event: "{{ event }}"
+            eventPayload: "{{ eventPayload }}"
+            source: "{{ source }}"
+            page: "RandomFrontendPage"
           capture:
             json: "$.eventId"
             as: "eventId"

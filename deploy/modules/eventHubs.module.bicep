@@ -3,6 +3,7 @@ param location string = resourceGroup().location
 param tags object = {}
 param eventHubName string
 param consumerGroupName string
+param networkRuleName string = 'default'
 
 @allowed([
   'Standard'
@@ -16,11 +17,15 @@ param eventHubSku string = 'Standard'
   4
 ])
 param skuCapacity int = 1
+param privateDnsZoneId string
 param privateEndpoint bool
-param eventhubsPrivateDnsName string
-param privateDnsVnet string
 param privateEndpointSubResource string
 param privateEndpointSubnet string
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param publicNetworkAccess string = 'Disabled'
 
 resource namespace 'Microsoft.EventHub/namespaces@2021-06-01-preview' = {
   name: name
@@ -54,16 +59,10 @@ resource consumerGroup 'Microsoft.EventHub/namespaces/eventhubs/consumergroups@2
   properties: {}  
 }
 
-//Private Endpoint
-
-//create the private dns zone and zone link for the vnet
-//for all azure evenhubs
-module privatednsnamespace './privateDnsZone.module.bicep'= if (privateEndpoint) {
-  name: 'privatednsnamespace'
-  params:{
-    name: eventhubsPrivateDnsName 
-    vnetIds: [privateDnsVnet]
-    tags: tags
+resource networkrules 'Microsoft.EventHub/namespaces/networkRuleSets@2022-01-01-preview' = {
+  name: '${namespace.name}/${networkRuleName}'
+  properties:{
+    publicNetworkAccess: publicNetworkAccess
   }
 }
 
@@ -75,7 +74,7 @@ module privateendpointeventhubs './privateEndpoint.module.bicep' = if (privateEn
   params:{
     name: 'privateendpointeventhubs'
     location: location
-    privateDnsZoneId: privatednsnamespace.outputs.id
+    privateDnsZoneId: privateDnsZoneId
     privateLinkServiceId: namespace.id
     subResource: privateEndpointSubResource
     subnetId: privateEndpointSubnet

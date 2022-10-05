@@ -18,10 +18,14 @@ param queues array = [
 
 
 param privateEndpoint bool = true 
-param serviceBusPrivateDnsName string
-param privateDnsVnet string
+param privateDnsZoneId string
 param privateEndpointSubResource string
 param privateEndpointSubnet string
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param publicNetworkAccess string = 'Disabled'
 
 // Currently tier value matches skuName value
 var skuTier = skuName
@@ -40,13 +44,16 @@ var queueDefaultProperties = {
 var defaultSASKeyName = 'RootManageSharedAccessKey'
 var defaultAuthRuleResourceId = resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', name, defaultSASKeyName)
 
-resource serviceBus 'Microsoft.ServiceBus/namespaces@2021-06-01-preview' = {
+resource serviceBus 'Microsoft.ServiceBus/namespaces@2022-01-01-preview' = {
   name: name
   location: location
   tags: tags
   sku: {
     name: skuName
     tier: skuTier
+  }
+  properties: {
+    publicNetworkAccess: publicNetworkAccess
   }
 }
 
@@ -57,17 +64,6 @@ resource serviceBusQueues 'Microsoft.ServiceBus/namespaces/queues@2021-06-01-pre
 
 //Private Endpoint
 
-//create the private dns zone and zone link for the vnet
-//for all azure evenhubs
-module privatednsnamespace './privateDnsZone.module.bicep'= if (privateEndpoint) {
-  name: 'privatednsnamespace'
-  params:{
-    name: serviceBusPrivateDnsName 
-    vnetIds: [privateDnsVnet]
-    tags: tags
-  }
-}
-
 //create the private endpoints and dns zone groups
 ///ingest function
 
@@ -76,7 +72,7 @@ module privateendpointservicebus './privateEndpoint.module.bicep' = if (privateE
   params:{
     name: 'privateendpointservicebus'
     location: location
-    privateDnsZoneId: privatednsnamespace.outputs.id
+    privateDnsZoneId: privateDnsZoneId
     privateLinkServiceId: serviceBus.id
     subResource: privateEndpointSubResource
     subnetId: privateEndpointSubnet

@@ -22,8 +22,9 @@ param includeSampleFunction bool = false
 param appInsInstrumentationKey string = ''
 param vnetintegration bool = false
 param privateEndpoint bool = false
-param functionPrivateDnsName string 
-param privateDnsVnet string
+// param functionPrivateDnsName string 
+// param privateDnsVnet string
+param privateDnsZoneId string
 param privateEndpointSubResource string
 param privateEndpointSubnet string
 
@@ -143,14 +144,14 @@ resource networkConfig 'Microsoft.Web/sites/networkConfig@2020-06-01' = if (vnet
 
 //create the private dns zone and zone link for the vnet
 //for all azure apps/functions
-module privatednsfunctions './privateDnsZone.module.bicep'= if (privateEndpoint) {
-  name: 'privatednsfunctions'
-  params:{
-    name: functionPrivateDnsName 
-    vnetIds: [privateDnsVnet]
-    tags: tags
-  }
-}
+// module privatednsfunctions './privateDnsZone.module.bicep'= if (privateEndpoint) {
+//   name: 'privatednsfunctions'
+//   params:{
+//     name: functionPrivateDnsName 
+//     vnetIds: [privateDnsVnet]
+//     tags: tags
+//   }
+// }
 
 //create the private endpoints and dns zone groups
 ///ingest function
@@ -160,7 +161,7 @@ module privateendpointingest './privateEndpoint.module.bicep' = if (privateEndpo
   params:{
     name: 'privateendpoint-${funcApp.name}'
     location: location
-    privateDnsZoneId: privatednsfunctions.outputs.id
+    privateDnsZoneId: privateDnsZoneId
     privateLinkServiceId: funcApp.id
     subResource: privateEndpointSubResource
     subnetId: privateEndpointSubnet

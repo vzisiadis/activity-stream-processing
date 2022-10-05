@@ -15,6 +15,7 @@ param privateDnsZoneId string
   'redisCache'
   'namespace'   
   'Sql'         // Microsoft.Synapse/workspaces
+  'vault'
 
 ])
 param subResource string

@@ -15,8 +15,9 @@ var subnetcidrs = {
   bastion: '10.0.1.0/26'
   default: '10.0.1.128/25'
   devops: '10.0.1.64/26'
-  frontend: '10.0.2.0/24'
-
+  ingestintegration: '10.0.2.0/26'
+  processingestintegration: '10.0.2.64/26'
+  notifyintegration: '10.0.2.128/26'
 }
 
 param vnetcidr string = '10.0.0.0/16'
@@ -24,6 +25,7 @@ param publicNetworkAccess string = 'Disabled'
 param createBlobPrivateEndpoint bool = true
 param createFunctionEndpointIngest bool = true
 param createFunctionEndpointProcess bool = true
+param createFunctionEndpointNotify bool = true
 param createKeyVaultPrivateEndpoint bool = true
 param createEventHubPrivateEndpoint bool = true
 param createServiceBusPrivateEndpoint bool = true 
@@ -33,6 +35,18 @@ param createServiceBusPrivateEndpoint bool = true
   'Premium'
 ])
 param storageAccessTier string = 'Hot'
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param serviceBusPublicNetworkAccess string = 'Disabled'
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param eventHubsPublicNetworkAccess string = 'Disabled'
+param keyVaultPublicNetworkAccess string = 'disabled'
+
 
 var resourceNames = {
   ingestFuncApp: replace(naming.functionApp.name, '${naming.functionApp.slug}-', '${naming.functionApp.slug}-ingestor-')
@@ -66,6 +80,7 @@ var createPrivateEndpoints = {
   createBlobPrivateEndpoint: createBlobPrivateEndpoint
   createFunctionEndpointIngest: createFunctionEndpointIngest
   createFunctionEndpointProcess: createFunctionEndpointProcess
+  createFunctionEndpointNotify: createFunctionEndpointNotify
   createKeyVaultPrivateEndpoint: createKeyVaultPrivateEndpoint
   createEventHubPrivateEndpoint: createEventHubPrivateEndpoint
   createServiceBusPrivateEndpoint: createServiceBusPrivateEndpoint
@@ -77,8 +92,7 @@ var dnsNames = {
   functionPrivateDnsName: 'privatelink.azurewebsites.net' //specific for azure apps/functions
   blobPrivateDnsName: 'privatelink.blob.${environment().suffixes.storage}' //privatelink.blob.core.windows.net
   keyvaultPrivateDnsName: 'privatelink${environment().suffixes.keyvaultDns}'
-  eventHubsPrivateDnsName: 'privatelink.servicebus.windows.net'
-  serviceBussPrivateDnsName: 'privatelink.servicebus.windows.net'
+  namespacePrivateDnsName: 'privatelink.servicebus.windows.net'
 }
 
 var privateEndpointResources = {
@@ -113,21 +127,12 @@ module vnet 'modules/vnet.module.bicep' = {
     }
     defaultSnet: {
       addressPrefix: subnetcidrs.default
-      // vnet integration for the function app
-      delegations: [
-        {
-          name: 'functionsintegration'
-          properties: {
-            serviceName: 'Microsoft.Web/serverfarms'
-          }
-        }
-      ]      
     }
     devOpsSnet: {
       addressPrefix: subnetcidrs.devops
     }
-    frontendIntegrationSnet: {
-      addressPrefix: subnetcidrs.frontend
+    ingestIntegrationSnet: {
+      addressPrefix: subnetcidrs.ingestintegration
       // vnet integration for the function app - temporarily
       delegations: [
         {
@@ -138,6 +143,30 @@ module vnet 'modules/vnet.module.bicep' = {
         }
       ]            
     }
+    processIntegrationSnet: {
+      addressPrefix: subnetcidrs.processingestintegration
+      // vnet integration for the function app - temporarily
+      delegations: [
+        {
+          name: 'functionsintegration'
+          properties: {
+            serviceName: 'Microsoft.Web/serverfarms'
+          }
+        }
+      ]            
+    }
+    notifyIntegrationSnet: {
+      addressPrefix: subnetcidrs.notifyintegration
+      // vnet integration for the function app - temporarily
+      delegations: [
+        {
+          name: 'functionsintegration'
+          properties: {
+            serviceName: 'Microsoft.Web/serverfarms'
+          }
+        }
+      ]            
+    }        
   }
 }
 
@@ -163,6 +192,18 @@ module dataStorageAccount 'modules/storage.module.bicep' = {
   }
 }
 
+//Private DNS for function apps
+//Only when private link is needed for any of the functions
+
+module privatednsfunctions './/modules/privateDnsZone.module.bicep'= if ((createPrivateEndpoints.createFunctionEndpointIngest) || (createPrivateEndpoints.createFunctionEndpointProcess) || (createPrivateEndpoints.createFunctionEndpointNotify)) {
+  name: 'privatednsfunctions'
+  params:{
+    name: dnsNames.functionPrivateDnsName 
+    vnetIds: [vnet.outputs.vnetId]
+    tags: tags
+  }
+}
+
 //ingest function integrated into main vnet on front subnet
 
 module ingestFuncApp './modules/functionApp.module.bicep' = {
@@ -175,12 +216,11 @@ module ingestFuncApp './modules/functionApp.module.bicep' = {
     skuName: functionSkuName
     //Vnet Integration
     vnetintegration: true
-    subnetIdForIntegration: vnet.outputs.frontendIntegrationSnetId
+    subnetIdForIntegration: vnet.outputs.ingestIntegrationSnetId
     //Private Endpoint
     privateEndpoint: createPrivateEndpoints.createFunctionEndpointIngest //Create or not a private endpoint
     //Private endpoint config
-    functionPrivateDnsName: dnsNames.functionPrivateDnsName 
-    privateDnsVnet: vnet.outputs.vnetId
+    privateDnsZoneId: privatednsfunctions.outputs.id
     privateEndpointSubResource: privateEndpointResources.functionPrivateEndpointResource
     privateEndpointSubnet: vnet.outputs.appSnetId
     appInsInstrumentationKey: applicationInsights.outputs.instrumentationKey
@@ -214,12 +254,11 @@ module processorFuncApp './modules/functionApp.module.bicep' = {
     tags: tags
     skuName: functionSkuName
     vnetintegration: true
-    subnetIdForIntegration: vnet.outputs.defaultSnetId    
+    subnetIdForIntegration: vnet.outputs.processIntegrationSnetId    
     //Private Endpoint
     privateEndpoint: createPrivateEndpoints.createFunctionEndpointProcess //Create or not a private endpoint
     //Private endpoint config
-    functionPrivateDnsName: dnsNames.functionPrivateDnsName 
-    privateDnsVnet: vnet.outputs.vnetId
+    privateDnsZoneId: privatednsfunctions.outputs.id
     privateEndpointSubResource: privateEndpointResources.functionPrivateEndpointResource
     privateEndpointSubnet: vnet.outputs.appSnetId 
     appInsInstrumentationKey: applicationInsights.outputs.instrumentationKey
@@ -248,35 +287,43 @@ module processorFuncApp './modules/functionApp.module.bicep' = {
   }
 }
 
-// module notifierFuncApp './modules/functionApp.module.bicep' = {
-//   name: 'notifierFuncApp'
-//   params: {
-//     location: location
-//     name: resourceNames.notifierFuncApp
-//     managedIdentity: true
-//     tags: tags
-//     skuName: functionSkuName
-//     appInsInstrumentationKey: applicationInsights.outputs.instrumentationKey
-//     funcAppSettings: [
-//       {
-//         name: 'DataStorageConnection'
-//         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.dataStorageConnectionString})'
-//       }
-//       {
-//         name: 'ServiceBusConnection'
-//         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.serviceBusConnectionString})'
-//       }
-//       {
-//         name: 'EventHubsConnection'
-//         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.eventHubsNamespaceConnectionString})'
-//       }
-//       {
-//         name: 'SendGridApiKey'
-//         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.sendGridApiKey})'
-//       }
-//     ]
-//   }
-// }
+module notifierFuncApp './modules/functionApp.module.bicep' = {
+  name: 'notifierFuncApp'
+  params: {
+    location: location
+    name: resourceNames.notifierFuncApp
+    managedIdentity: true
+    tags: tags
+    skuName: functionSkuName
+    vnetintegration: true
+    subnetIdForIntegration: vnet.outputs.notifyIntegrationSnetId    
+    //Private Endpoint
+    privateEndpoint: createPrivateEndpoints.createFunctionEndpointNotify //Create or not a private endpoint
+    //Private endpoint config
+    privateDnsZoneId: privatednsfunctions.outputs.id
+    privateEndpointSubResource: privateEndpointResources.functionPrivateEndpointResource
+    privateEndpointSubnet: vnet.outputs.appSnetId     
+    appInsInstrumentationKey: applicationInsights.outputs.instrumentationKey
+    funcAppSettings: [
+      {
+        name: 'DataStorageConnection'
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.dataStorageConnectionString})'
+      }
+      {
+        name: 'ServiceBusConnection'
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.serviceBusConnectionString})'
+      }
+      {
+        name: 'EventHubsConnection'
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.eventHubsNamespaceConnectionString})'
+      }
+      {
+        name: 'SendGridApiKey'
+        value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.sendGridApiKey})'
+      }
+    ]
+  }
+}
 
 module keyVault 'modules/keyvault.module.bicep' = {
   name: 'keyVault'
@@ -291,6 +338,7 @@ module keyVault 'modules/keyvault.module.bicep' = {
     privateDnsVnet: vnet.outputs.vnetId
     privateEndpointSubResource: privateEndpointResources.keyvaultPrivateEnpointResource
     privateEndpointSubnet: vnet.outputs.appSnetId   
+    publicNetworkAccess: keyVaultPublicNetworkAccess
     accessPolicies: [
       {
         tenantId: ingestFuncApp.outputs.identity.tenantId
@@ -310,15 +358,15 @@ module keyVault 'modules/keyvault.module.bicep' = {
           ]
         }
       }
-      // {
-      //   tenantId: notifierFuncApp.outputs.identity.tenantId
-      //   objectId: notifierFuncApp.outputs.identity.principalId
-      //   permissions: {
-      //     secrets: [
-      //       'get'
-      //     ]
-      //   }
-      // }
+      {
+        tenantId: notifierFuncApp.outputs.identity.tenantId
+        objectId: notifierFuncApp.outputs.identity.principalId
+        permissions: {
+          secrets: [
+            'get'
+          ]
+        }
+      }
     ]
     secrets: [
       {
@@ -343,6 +391,17 @@ module keyVault 'modules/keyvault.module.bicep' = {
 
 ////Event Hubs
 
+
+//create private dns for eventhubs and service bus (common dns)
+module privatednsnamespace './modules/privateDnsZone.module.bicep' = if ((createPrivateEndpoints.createEventHubPrivateEndpoint) || (createPrivateEndpoints.createServiceBusPrivateEndpoint)) {
+  name: 'privatednsnamespace'
+  params:{
+    name: dnsNames.namespacePrivateDnsName 
+    vnetIds: [vnet.outputs.vnetId]
+    tags: tags
+  }
+}
+
 //create event hub namespace and hub
 module eventHub './modules/eventHubs.module.bicep' = {
   name: 'eventHub'
@@ -352,10 +411,10 @@ module eventHub './modules/eventHubs.module.bicep' = {
     eventHubSku: 'Standard'
     eventHubName: resourceNames.eventHub
     consumerGroupName: resourceNames.eventHubConsumerGroup
+    publicNetworkAccess: eventHubsPublicNetworkAccess
     privateEndpoint: createPrivateEndpoints.createEventHubPrivateEndpoint
     //Private endpoint config
-    eventhubsPrivateDnsName: dnsNames.eventHubsPrivateDnsName 
-    privateDnsVnet: vnet.outputs.vnetId
+    privateDnsZoneId: privatednsnamespace.outputs.id
     privateEndpointSubResource: privateEndpointResources.eventHubsPrivateEnpointResource
     privateEndpointSubnet: vnet.outputs.appSnetId       
     tags: tags
@@ -370,10 +429,10 @@ module serviceBus 'modules/servicebus.module.bicep' = {
     location: location
     skuName: environmentType == 'poc' ? 'Standard' : 'Premium'
     name: resourceNames.serviceBusNamespace
+    publicNetworkAccess: serviceBusPublicNetworkAccess
     privateEndpoint: createPrivateEndpoints.createServiceBusPrivateEndpoint
     //Private endpoint config
-    serviceBusPrivateDnsName: dnsNames.serviceBussPrivateDnsName 
-    privateDnsVnet: vnet.outputs.vnetId
+    privateDnsZoneId: privatednsnamespace.outputs.id
     privateEndpointSubResource: privateEndpointResources.serviceBusPrivateEnpointResource
     privateEndpointSubnet: vnet.outputs.appSnetId      
     tags: tags
@@ -402,4 +461,4 @@ module streamAnalyticsJob 'modules/streamAnalyticsJob.module.bicep' = {
 output storageAccountName string = dataStorageAccount.outputs.name
 output ingestorFunctionAppName string = ingestFuncApp.outputs.name
 output processorFunctionAppName string = processorFuncApp.outputs.name
-// output notifierFunctionAppName string = notifierFuncApp.outputs.name
+output notifierFunctionAppName string = notifierFuncApp.outputs.name

@@ -19,8 +19,9 @@ param keyVaultPrivateDnsName string
 param privateDnsVnet string
 param privateEndpointSubResource string
 param privateEndpointSubnet string
+param publicNetworkAccess string = 'disabled'
 
-resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: name
   location: location
   properties: {
@@ -30,6 +31,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       name: skuName
     }
     accessPolicies: accessPolicies
+    publicNetworkAccess: publicNetworkAccess
   }
   tags: tags
 }

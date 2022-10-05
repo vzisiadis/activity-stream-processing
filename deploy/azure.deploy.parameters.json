@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "applicationName": {
-      "value": "acts"
+      "value": "activity-poc"
     },
     "environment": {
       "value": "dev"
@@ -22,4 +22,4 @@
       }
     }
   }
-}
+} 

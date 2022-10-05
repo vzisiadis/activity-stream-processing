@@ -10,7 +10,7 @@ resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
 }
 
 module privateDnsZoneLinks 'privateDnsZoneLink.module.bicep' = if (!empty(vnetIds)) {
-  name: 'PrvDnsZoneLinks-Deployment-${name}'  
+  name: '${privateDnsZone.name}-link' 
   params: {
     privateDnsZoneName: privateDnsZone.name
     vnetIds: vnetIds

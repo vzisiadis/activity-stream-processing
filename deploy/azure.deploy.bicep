@@ -56,10 +56,10 @@ module main 'main.bicep' = {
   }
 }
 
-// Customize outputs as required from the main deployment module
+// // Customize outputs as required from the main deployment module
 output resourceGroupId string = rg.id
 output resourceGroupName string = rg.name
 output storageAccountName string = main.outputs.storageAccountName
 output ingestorFunctionAppName string = main.outputs.ingestorFunctionAppName
 output processorFunctionAppName string = main.outputs.processorFunctionAppName
-output notifierFunctionAppName string = main.outputs.notifierFunctionAppName
+// output notifierFunctionAppName string = main.outputs.notifierFunctionAppName

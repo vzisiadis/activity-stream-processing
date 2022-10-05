@@ -20,13 +20,19 @@ param funcDeployBranch string = ''
 param subnetIdForIntegration string = ''
 param includeSampleFunction bool = false
 param appInsInstrumentationKey string = ''
+param vnetintegration bool = false
+param privateEndpoint bool = false
+param functionPrivateDnsName string 
+param privateDnsVnet string
+param privateEndpointSubResource string
+param privateEndpointSubnet string
 
 var skuTier = skuName == 'Y1' ? 'Dynamic' : 'Elastic'
 var funcAppServicePlanName = 'plan-${name}'
 var funcStorageName = 's${replace(name, '-', '')}'
 var funcAppInsName = 'appins-${name}'
 var createSourceControl = !empty(funcDeployRepoUrl)
-var createNetworkConfig = !empty(subnetIdForIntegration)
+// var createNetworkConfig = !empty(subnetIdForIntegration)
 var createAppInsights = empty(appInsInstrumentationKey)
 var siteConfigAddin = linux ? {
   linuxFxVersion:  'Java|11'
@@ -40,6 +46,13 @@ module funcStorage './storage.module.bicep' = {
   params: {
     name: funcStorageName
     location: location
+    publicNetworkAccess: 'Enabled'
+    accessTier: 'Hot'
+    privateEndpoint: false
+    blobPrivateDnsName: ''
+    privateDnsVnet: ''
+    privateEndpointSubnet: ''
+    privateEndpointSubResource: ''
     tags: tags
   }
 }
@@ -119,12 +132,42 @@ resource funcApp 'Microsoft.Web/sites@2020-06-01' = {
   tags: tags
 }
 
-resource networkConfig 'Microsoft.Web/sites/networkConfig@2020-06-01' = if (createNetworkConfig) {
+resource networkConfig 'Microsoft.Web/sites/networkConfig@2020-06-01' = if (vnetintegration) {
   name: '${funcApp.name}/VirtualNetwork'
   properties: {
     subnetResourceId: subnetIdForIntegration
   }
 }
+
+//Private Endpoint
+
+//create the private dns zone and zone link for the vnet
+//for all azure apps/functions
+module privatednsfunctions './privateDnsZone.module.bicep'= if (privateEndpoint) {
+  name: 'privatednsfunctions'
+  params:{
+    name: functionPrivateDnsName 
+    vnetIds: [privateDnsVnet]
+    tags: tags
+  }
+}
+
+//create the private endpoints and dns zone groups
+///ingest function
+
+module privateendpointingest './privateEndpoint.module.bicep' = if (privateEndpoint) {
+  name: 'privateendpoint-${funcApp.name}'
+  params:{
+    name: 'privateendpoint-${funcApp.name}'
+    location: location
+    privateDnsZoneId: privatednsfunctions.outputs.id
+    privateLinkServiceId: funcApp.id
+    subResource: privateEndpointSubResource
+    subnetId: privateEndpointSubnet
+    tags: tags
+  }
+}
+
 
 resource funcAppSourceControl 'Microsoft.Web/sites/sourcecontrols@2020-06-01' = if (createSourceControl) {
   name: '${funcApp.name}/web'
@@ -171,5 +214,5 @@ output identity object = {
   principalId: funcApp.identity.principalId
   type: funcApp.identity.type
 }
-output applicationInsights object = funcAppIns
+// output applicationInsights object = funcAppIns
 output storage object = funcStorage

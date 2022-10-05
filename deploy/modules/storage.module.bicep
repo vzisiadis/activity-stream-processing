@@ -23,7 +23,25 @@ param kind string = 'StorageV2'
 ])
 param skuName string = 'Standard_LRS'
 
-resource storage 'Microsoft.Storage/storageAccounts@2019-06-01' = {
+@allowed([
+  'Disabled'
+  'Enabled'
+])
+param publicNetworkAccess string
+param privateEndpoint bool = false
+param blobPrivateDnsName string
+param privateDnsVnet string
+param privateEndpointSubResource string
+param privateEndpointSubnet string
+
+@allowed([
+  'Hot'
+  'Cold'
+  'Premium'
+])
+param accessTier string
+
+resource storage 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: toLower(take(replace(name, '-', ''), 24))
   location: location
   kind: kind
@@ -34,8 +52,35 @@ resource storage 'Microsoft.Storage/storageAccounts@2019-06-01' = {
     displayName: name
   })
   properties: {
-    accessTier: 'Hot'
+    accessTier: accessTier
     supportsHttpsTrafficOnly: true
+    publicNetworkAccess: publicNetworkAccess
+  }
+}
+
+//create Private DNS zone for Blob and link to Vnet
+
+module privatednsblob './privateDnsZone.module.bicep'= if (privateEndpoint) {
+  name: 'privatednsblob'
+  params:{
+    name: blobPrivateDnsName
+    vnetIds: [privateDnsVnet]
+    tags: tags
+  }
+}
+
+//create Private Endpoint and link to Private DNS
+
+module privateendpointblob './privateEndpoint.module.bicep' = if (privateEndpoint) {
+  name: 'privateendpointblob'
+  params:{
+    name: 'privateendpointblob'
+    location: location
+    privateDnsZoneId: privatednsblob.outputs.id
+    privateLinkServiceId: storage.id
+    subResource: privateEndpointSubResource
+    subnetId: privateEndpointSubnet
+    tags: tags
   }
 }
 

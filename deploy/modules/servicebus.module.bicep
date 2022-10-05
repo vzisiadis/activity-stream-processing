@@ -16,6 +16,13 @@ param queues array = [
   }
 ]
 
+
+param privateEndpoint bool = true 
+param serviceBusPrivateDnsName string
+param privateDnsVnet string
+param privateEndpointSubResource string
+param privateEndpointSubnet string
+
 // Currently tier value matches skuName value
 var skuTier = skuName
 
@@ -47,6 +54,35 @@ resource serviceBusQueues 'Microsoft.ServiceBus/namespaces/queues@2021-06-01-pre
   name: '${serviceBus.name}/${queue.name}'
   properties: union(queueDefaultProperties, queue.properties)
 }]
+
+//Private Endpoint
+
+//create the private dns zone and zone link for the vnet
+//for all azure evenhubs
+module privatednsnamespace './privateDnsZone.module.bicep'= if (privateEndpoint) {
+  name: 'privatednsnamespace'
+  params:{
+    name: serviceBusPrivateDnsName 
+    vnetIds: [privateDnsVnet]
+    tags: tags
+  }
+}
+
+//create the private endpoints and dns zone groups
+///ingest function
+
+module privateendpointservicebus './privateEndpoint.module.bicep' = if (privateEndpoint) {
+  name: 'privateendpointservicebus'
+  params:{
+    name: 'privateendpointservicebus'
+    location: location
+    privateDnsZoneId: privatednsnamespace.outputs.id
+    privateLinkServiceId: serviceBus.id
+    subResource: privateEndpointSubResource
+    subnetId: privateEndpointSubnet
+    tags: tags
+  }
+}
 
 output id string = serviceBus.id
 output queues array = [for (queue, i) in queues: {

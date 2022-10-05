@@ -5,7 +5,7 @@ param vnetIds array
 
 resource privateDnsZoneLinks 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = [for (vnetId, i) in vnetIds: {
   name: '${privateDnsZoneName}/${privateDnsZoneName}-link-${i}'
-  location: 'Global'
+  location: 'global'
   tags: tags
   properties: {
     registrationEnabled: registrationEnabled

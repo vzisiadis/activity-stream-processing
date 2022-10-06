@@ -8,20 +8,8 @@ param sendGridApiKey string
   'dev'
 ])
 param environmentType string = 'dev'
-
-var subnetcidrs = {
-
-  app: '10.0.0.0/24'
-  bastion: '10.0.1.0/26'
-  default: '10.0.1.128/25'
-  devops: '10.0.1.64/26'
-  ingestintegration: '10.0.2.0/26'
-  processingestintegration: '10.0.2.64/26'
-  notifyintegration: '10.0.2.128/26'
-}
-
 param vnetcidr string = '10.0.0.0/16'
-param publicNetworkAccess string = 'Disabled'
+param storagepublicNetworkAccess string = 'Disabled'
 param createBlobPrivateEndpoint bool = true
 param createFunctionEndpointIngest bool = true
 param createFunctionEndpointProcess bool = true
@@ -29,6 +17,8 @@ param createFunctionEndpointNotify bool = true
 param createKeyVaultPrivateEndpoint bool = true
 param createEventHubPrivateEndpoint bool = true
 param createServiceBusPrivateEndpoint bool = true 
+param storageKind string = 'StorageV2'
+param storageSku string = 'Standard_LRS'
 @allowed([
   'Hot'
   'Cold'
@@ -85,6 +75,17 @@ var createPrivateEndpoints = {
   createEventHubPrivateEndpoint: createEventHubPrivateEndpoint
   createServiceBusPrivateEndpoint: createServiceBusPrivateEndpoint
 
+}
+
+var subnetcidrs = {
+
+  app: '10.0.0.0/24'
+  bastion: '10.0.1.0/26'
+  default: '10.0.1.128/25'
+  devops: '10.0.1.64/26'
+  ingestintegration: '10.0.2.0/26'
+  processingestintegration: '10.0.2.64/26'
+  notifyintegration: '10.0.2.128/26'
 }
 
 var dnsNames = {
@@ -176,11 +177,11 @@ module dataStorageAccount 'modules/storage.module.bicep' = {
   name: 'dataStorageAccount'
   params: {
     location: location
-    kind: 'StorageV2'
-    skuName: 'Standard_LRS'
+    kind: storageKind
+    skuName: storageSku
     name: resourceNames.dataStorageAccount
     accessTier: storageAccessTier
-    publicNetworkAccess: publicNetworkAccess //Allow or Disallow Public Access
+    publicNetworkAccess: storagepublicNetworkAccess //Allow or Disallow Public Access
     privateEndpoint: createPrivateEndpoints.createBlobPrivateEndpoint //Create or not a private endpoint
     //Private endpoint config
     blobPrivateDnsName: dnsNames.blobPrivateDnsName 

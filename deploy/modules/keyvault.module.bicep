@@ -58,7 +58,6 @@ module privatednskeyvault './privateDnsZone.module.bicep'= if (privateEndpoint) 
 }
 
 //create the private endpoints and dns zone groups
-///ingest function
 
 module privateendpointkeyvault './privateEndpoint.module.bicep' = if (privateEndpoint) {
   name: 'privateendpointkeyvault'

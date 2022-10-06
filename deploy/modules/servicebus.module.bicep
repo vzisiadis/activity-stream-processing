@@ -65,7 +65,6 @@ resource serviceBusQueues 'Microsoft.ServiceBus/namespaces/queues@2021-06-01-pre
 //Private Endpoint
 
 //create the private endpoints and dns zone groups
-///ingest function
 
 module privateendpointservicebus './privateEndpoint.module.bicep' = if (privateEndpoint) {
   name: 'privateendpointservicebus'

@@ -67,7 +67,6 @@ resource networkrules 'Microsoft.EventHub/namespaces/networkRuleSets@2022-01-01-
 }
 
 //create the private endpoints and dns zone groups
-///ingest function
 
 module privateendpointeventhubs './privateEndpoint.module.bicep' = if (privateEndpoint) {
   name: 'privateendpointeventhubs'

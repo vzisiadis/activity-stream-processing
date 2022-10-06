@@ -140,21 +140,7 @@ resource networkConfig 'Microsoft.Web/sites/networkConfig@2020-06-01' = if (vnet
   }
 }
 
-//Private Endpoint
-
-//create the private dns zone and zone link for the vnet
-//for all azure apps/functions
-// module privatednsfunctions './privateDnsZone.module.bicep'= if (privateEndpoint) {
-//   name: 'privatednsfunctions'
-//   params:{
-//     name: functionPrivateDnsName 
-//     vnetIds: [privateDnsVnet]
-//     tags: tags
-//   }
-// }
-
 //create the private endpoints and dns zone groups
-///ingest function
 
 module privateendpointingest './privateEndpoint.module.bicep' = if (privateEndpoint) {
   name: 'privateendpoint-${funcApp.name}'

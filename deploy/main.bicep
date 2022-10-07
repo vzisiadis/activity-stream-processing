@@ -52,6 +52,7 @@ var resourceNames = {
   containerRegistry: naming.containerRegistry.name
   streamAnalyticsJobName: naming.streamAnalyticsJob.name
   vnetName: naming.virtualNetwork.name
+  appGatewayName: naming.applicationGateway.name
 }
 
 
@@ -134,7 +135,7 @@ module vnet 'modules/vnet.module.bicep' = {
     }
     ingestIntegrationSnet: {
       addressPrefix: subnetcidrs.ingestintegration
-      // vnet integration for the function app - temporarily
+      // vnet integration for the function app 
       delegations: [
         {
           name: 'functionsintegration'
@@ -146,7 +147,7 @@ module vnet 'modules/vnet.module.bicep' = {
     }
     processIntegrationSnet: {
       addressPrefix: subnetcidrs.processingestintegration
-      // vnet integration for the function app - temporarily
+      // vnet integration for the function app
       delegations: [
         {
           name: 'functionsintegration'
@@ -158,7 +159,7 @@ module vnet 'modules/vnet.module.bicep' = {
     }
     notifyIntegrationSnet: {
       addressPrefix: subnetcidrs.notifyintegration
-      // vnet integration for the function app - temporarily
+      // vnet integration for the function app
       delegations: [
         {
           name: 'functionsintegration'
@@ -323,6 +324,18 @@ module notifierFuncApp './modules/functionApp.module.bicep' = {
         value: '@Microsoft.KeyVault(VaultName=${resourceNames.keyVault};SecretName=${secretNames.sendGridApiKey})'
       }
     ]
+  }
+}
+
+module appGateway './modules/applicationGateway.module.bicep' = {
+  name: 'appGateway'
+  params: {
+    name: resourceNames.appGatewayName
+    subnetId: vnet.outputs.defaultSnetId
+    location: location
+    tags: tags
+    //dnsLabelPrefix: ''
+    frontendWebAppFqdn: '${ingestFuncApp.outputs.name}.azurewebsites.net'
   }
 }
 

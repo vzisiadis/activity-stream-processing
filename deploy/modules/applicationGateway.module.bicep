@@ -2,7 +2,7 @@ param name string
 param location string = resourceGroup().location
 param tags object = {}
 param subnetId string
-param dnsLabelPrefix string
+//param dnsLabelPrefix string
 param frontendWebAppFqdn string
 
 var resourceNames = {
@@ -25,9 +25,9 @@ resource pip 'Microsoft.Network/publicIPAddresses@2020-06-01' = {
   }
   properties: {
     publicIPAllocationMethod: 'Static'    
-    dnsSettings: {
-      domainNameLabel: dnsLabelPrefix
-    }
+    // dnsSettings: {
+    //   domainNameLabel: dnsLabelPrefix
+    // }
   }
 }
 

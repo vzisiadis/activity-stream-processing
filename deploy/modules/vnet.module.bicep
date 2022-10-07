@@ -12,7 +12,6 @@ param ingestIntegrationSnet object
 param processIntegrationSnet object
 param notifyIntegrationSnet object
 
-
 var defaultSnetConfig = {
   name: '${name}-default-snet'
   properties: defaultSnet

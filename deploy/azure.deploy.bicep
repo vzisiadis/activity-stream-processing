@@ -62,4 +62,4 @@ output resourceGroupName string = rg.name
 output storageAccountName string = main.outputs.storageAccountName
 output ingestorFunctionAppName string = main.outputs.ingestorFunctionAppName
 output processorFunctionAppName string = main.outputs.processorFunctionAppName
-// output notifierFunctionAppName string = main.outputs.notifierFunctionAppName
+output notifierFunctionAppName string = main.outputs.notifierFunctionAppName
